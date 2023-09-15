@@ -230,11 +230,23 @@ int cam_mem_mgr_init(void)
 	}
 #endif
 	bitmap_size = BITS_TO_LONGS(CAM_MEM_BUFQ_MAX) * sizeof(long);
+/* sony extension begin */
+#if 1
+	if (!tbl.bitmap) {
+		tbl.bitmap = kzalloc(bitmap_size, GFP_KERNEL);
+		if (!tbl.bitmap) {
+			rc = -ENOMEM;
+			goto put_heaps;
+		}
+	}
+#else
 	tbl.bitmap = kzalloc(bitmap_size, GFP_KERNEL);
 	if (!tbl.bitmap) {
 		rc = -ENOMEM;
 		goto put_heaps;
 	}
+#endif
+/* sony extension end */
 
 	tbl.bits = bitmap_size * BITS_PER_BYTE;
 	bitmap_zero(tbl.bitmap, tbl.bits);
@@ -701,12 +713,14 @@ static int cam_mem_util_get_dma_buf(size_t len,
 			cam_flags, tbl.force_cache_allocs);
 	} else {
 		use_cached_heap = false;
-		if (!tbl.system_uncached_heap) {
-			CAM_ERR(CAM_MEM,
-				"Using UNCACHED heap not supported, cam_flags=0x%x, force_cache_allocs=%d",
-				cam_flags, tbl.force_cache_allocs);
-			return -EINVAL;
-		}
+		CAM_ERR(CAM_MEM,
+			"Using UNCACHED heap not supported, cam_flags=0x%x, force_cache_allocs=%d",
+			cam_flags, tbl.force_cache_allocs);
+		/*
+		 * Need a better handling based on whether dma-buf-heaps support
+		 * uncached heaps or not. For now, assume not supported.
+		 */
+		return -EINVAL;
 	}
 
 	if (cam_flags & CAM_MEM_FLAG_PROTECTED_MODE) {
@@ -1484,8 +1498,17 @@ void cam_mem_mgr_deinit(void)
 	cam_mem_mgr_cleanup_table();
 	mutex_lock(&tbl.m_lock);
 	bitmap_zero(tbl.bitmap, tbl.bits);
+/* sony extension begin */
+#if 1
+	if (tbl.bitmap) {
+		kfree(tbl.bitmap);
+		tbl.bitmap = NULL;
+	}
+#else
 	kfree(tbl.bitmap);
 	tbl.bitmap = NULL;
+#endif
+/* sony extension end */
 	tbl.dbg_buf_idx = -1;
 	mutex_unlock(&tbl.m_lock);
 	mutex_destroy(&tbl.m_lock);

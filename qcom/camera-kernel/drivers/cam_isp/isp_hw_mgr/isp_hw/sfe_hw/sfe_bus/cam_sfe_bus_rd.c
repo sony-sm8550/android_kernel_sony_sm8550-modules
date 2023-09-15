@@ -2047,8 +2047,7 @@ int cam_sfe_bus_rd_init(
 		rc = cam_sfe_bus_init_rm_resource(i, bus_priv, bus_hw_info,
 			&bus_priv->bus_client[i]);
 		if (rc < 0) {
-			CAM_ERR(CAM_SFE, "Init RM failed for client:%d, rc=%d",
-				i, rc);
+			CAM_ERR(CAM_SFE, "Init RM failed rc=%d", rc);
 			goto deinit_rm;
 		}
 	}
@@ -2057,8 +2056,7 @@ int cam_sfe_bus_rd_init(
 		rc = cam_sfe_bus_init_sfe_bus_read_resource(i, bus_priv,
 			bus_rd_hw_info);
 		if (rc < 0) {
-			CAM_ERR(CAM_SFE, "Init SFE RD failed for client:%d, rc=%d",
-				i, rc);
+			CAM_ERR(CAM_SFE, "Init SFE RD failed rc=%d", rc);
 			goto deinit_sfe_bus_rd;
 		}
 	}
@@ -2087,6 +2085,8 @@ int cam_sfe_bus_rd_init(
 	return rc;
 
 deinit_sfe_bus_rd:
+	if (i < 0)
+		i = CAM_SFE_BUS_RD_MAX;
 	for (--i; i >= 0; i--)
 		cam_sfe_bus_deinit_sfe_bus_rd_resource(
 			&bus_priv->sfe_bus_rd[i]);
