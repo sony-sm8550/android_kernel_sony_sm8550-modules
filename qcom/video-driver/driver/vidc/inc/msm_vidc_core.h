@@ -64,6 +64,8 @@ enum msm_vidc_core_state {
 	MSM_VIDC_CORE_INIT         = 2,
 };
 
+#define SUBSYS_CRASH_REASON_LEN 512
+
 struct msm_vidc_core {
 	struct platform_device                *pdev;
 	struct msm_video_device                vdev[2];
@@ -121,6 +123,7 @@ struct msm_vidc_core {
 	bool                                   pm_suspended;
 	bool                                   cpu_watchdog;
 	bool                                   video_unresponsive;
+	char crash_reason_buf[SUBSYS_CRASH_REASON_LEN];
 };
 
 #endif // _MSM_VIDC_CORE_H_
