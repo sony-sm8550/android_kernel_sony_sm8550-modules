@@ -1,7 +1,7 @@
 KERNEL_SRC ?= /lib/modules/$(shell uname -r)/build
 
 DATARMNET_CORE_PATH := datarmnet/core
-RMNET_CORE_PATH := kernel/oneplus/sm8550-modules/qcom/$(DATARMNET_CORE_PATH)
+RMNET_CORE_PATH := kernel/sony/sm8550-modules/qcom/$(DATARMNET_CORE_PATH)
 RMNET_CORE_INC_DIR := $(KERNEL_SRC)/../sm8550-modules/qcom/$(DATARMNET_CORE_PATH)
 
 KBUILD_OPTIONS := RMNET_SHS_ROOT=$(PWD)
