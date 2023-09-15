@@ -79,6 +79,8 @@ static void print_sfr_message(struct msm_vidc_core *core)
 			vsfr->rg_data[vsfr_size - 1] = '\0';
 
 		d_vpr_e(FMT_STRING_MSG_SFR, vsfr->rg_data);
+		snprintf(core->crash_reason_buf,sizeof(core->crash_reason_buf), FMT_STRING_MSG_SFR, vsfr->rg_data);
+		sysfs_notify(&core->pdev->dev.kobj, NULL, "crash_reason");
 	}
 }
 
