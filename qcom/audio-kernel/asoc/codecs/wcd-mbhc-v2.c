@@ -1830,6 +1830,7 @@ int wcd_mbhc_start(struct wcd_mbhc *mbhc, struct wcd_mbhc_config *mbhc_cfg)
 		if (mbhc->wcd_aatc_dev_np)
 			rc = wcd_usbss_reg_notifier(&mbhc->aatc_dev_nb, mbhc->wcd_aatc_dev_np);
 #endif
+
 		if (mbhc->fsa_aatc_dev_np)
 			rc = fsa4480_reg_notifier(&mbhc->aatc_dev_nb, mbhc->fsa_aatc_dev_np);
 	}
