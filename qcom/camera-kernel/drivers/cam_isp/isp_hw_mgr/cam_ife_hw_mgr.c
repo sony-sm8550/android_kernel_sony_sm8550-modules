@@ -6511,6 +6511,10 @@ static int cam_ife_mgr_stop_hw_in_overflow(void *stop_hw_args)
 			ctx->base[i].idx, CAM_CSID_HALT_IMMEDIATELY);
 	}
 
+/* sony extension begin */
+	cam_ife_mgr_finish_clk_bw_update(ctx, 0, true);
+/* sony extension end */
+
 	/* IFE mux in resources */
 	list_for_each_entry(hw_mgr_res, &ctx->res_list_ife_src, list) {
 		cam_ife_hw_mgr_stop_hw_res(hw_mgr_res);
@@ -13056,6 +13060,10 @@ static int cam_ife_hw_mgr_handle_csid_error(
 	/* Default error types */
 	recovery_data.error_type = CAM_ISP_HW_ERROR_OVERFLOW;
 	error_event_data.error_type = CAM_ISP_HW_ERROR_CSID_FATAL;
+/* sony extension begin */
+	if (g_ife_hw_mgr.debug_cfg.enable_recovery)
+		error_event_data.recovery_enabled = true;
+/* sony extension end */
 
 	/* Notify IFE/SFE devices, determine bus overflow */
 	if (err_type & (CAM_ISP_HW_ERROR_CSID_OUTPUT_FIFO_OVERFLOW |
@@ -14463,6 +14471,9 @@ static int cam_ife_hw_mgr_debug_register(void)
 		&g_ife_hw_mgr.debug_cfg.disable_isp_drv);
 end:
 	g_ife_hw_mgr.debug_cfg.enable_csid_recovery = 1;
+/* sony extension begin */
+	g_ife_hw_mgr.debug_cfg.enable_recovery = 1;
+/* sony extension end */
 	return rc;
 }
 
