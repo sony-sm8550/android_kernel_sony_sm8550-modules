@@ -2857,6 +2857,7 @@ static int cam_icp_mgr_trigger_recovery(struct cam_icp_hw_mgr *hw_mgr)
 		CAM_ERR(CAM_ICP,
 			"Fail to report system failure to userspace due to no active ctx");
 
+	complete(&hw_mgr->icp_complete);
 	CAM_DBG(CAM_ICP, "Done");
 	return rc;
 }
@@ -3901,6 +3902,33 @@ static int cam_icp_mgr_abort_handle_wq(
 	memcpy(abort_cmd->payload.direct, &abort_data,
 		sizeof(abort_data));
 
+	if (task_data->request_id == 0) {
+		abort_data.abort.num_req_ids = 0;
+	} else {
+		abort_data.abort.num_req_ids = 1;
+		abort_data.abort.num_req_id[0] = task_data->request_id;
+	}
+	memcpy(abort_cmd->payload.direct, &abort_data,
+		sizeof(abort_data));
+
+	if (task_data->request_id == 0) {
+		abort_data.abort.num_req_ids = 0;
+	} else {
+		abort_data.abort.num_req_ids = 1;
+		abort_data.abort.num_req_id[0] = task_data->request_id;
+	}
+	memcpy(abort_cmd->payload.direct, &abort_data,
+		sizeof(abort_data));
+
+	if (task_data->request_id == 0) {
+		abort_data.abort.num_req_ids = 0;
+	} else {
+		abort_data.abort.num_req_ids = 1;
+		abort_data.abort.num_req_id[0] = task_data->request_id;
+	}
+	memcpy(abort_cmd->payload.direct, &abort_data,
+		sizeof(abort_data));
+
 	rc = hfi_write_cmd(abort_cmd);
 	if (rc) {
 		kfree(abort_cmd);
@@ -4240,6 +4268,7 @@ static int cam_icp_mgr_hw_close(void *hw_priv, void *hw_close_args)
 	int rc = 0;
 
 	CAM_DBG(CAM_ICP, "E");
+	atomic_set(&hw_mgr->recovery, 0);
 	if (!hw_mgr->icp_booted) {
 		CAM_DBG(CAM_ICP, "hw mgr is already closed");
 		return 0;
@@ -4431,7 +4460,7 @@ static int cam_icp_mgr_send_fw_init(struct cam_icp_hw_mgr *hw_mgr)
 			&icp_hw_mgr.icp_complete,
 			msecs_to_jiffies(timeout), CAM_ICP,
 			"FW response timeout for FW init handle command");
-	if (!rem_jiffies) {
+	if (!rem_jiffies || atomic_read(&hw_mgr->recovery)) {
 		rc = -ETIMEDOUT;
 		cam_icp_dump_debug_info(false);
 	}
@@ -4457,6 +4486,18 @@ static int cam_icp_mgr_hw_open_u(void *hw_mgr_priv, void *download_fw_args)
 
 	mutex_lock(&hw_mgr->hw_mgr_mutex);
 	rc = cam_icp_mgr_hw_open(hw_mgr, download_fw_args);
+	if (rc) {
+		CAM_WARN(CAM_ICP, "Retry ICP initialization");
+		rc = cam_icp_mgr_hw_close(hw_mgr, NULL);
+		if (rc) {
+			CAM_ERR(CAM_ICP, "cam_icp_mgr_hw_close() rc:%d", rc);
+		} else {
+			rc = cam_icp_mgr_hw_open(hw_mgr, download_fw_args);
+			if (rc) {
+				CAM_ERR(CAM_ICP, "cam_icp_mgr_hw_open() rc:%d", rc);
+			}
+		}
+	}
 	mutex_unlock(&hw_mgr->hw_mgr_mutex);
 
 	return rc;
