@@ -308,8 +308,8 @@ static ssize_t dp_display_dp_stop_store(struct device *dev,
 		mutex_unlock(&dp->session_lock);
 
 		if (!dp->debug->sim_mode && !dp->no_aux_switch
-		    && !dp->parser->gpio_aux_switch)
-			dp->aux->aux_switch(dp->aux, false, ORIENTATION_NONE);
+		    && !dp->parser->gpio_aux_switch && dp->aux->switch_configure)
+			dp->aux->switch_configure(dp->aux, false, ORIENTATION_NONE);
 	}
 
 	return count;
